@@ -6,7 +6,7 @@ s.name = "ProgressStepControll"
 s.summary = "ProgressStepControll para controlar de forma dinamica os steps"
 s.requires_arc = true
 
-s.version = "0.1.0"
+s.version = “0.2.0”
 
 s.license = { :type => "MIT", :file => "LICENSE" }
 
