@@ -1,3 +1,10 @@
+//
+//  StepsProgressView.swift
+//  PocProgressBarSteps
+//
+//  Created by Matheus Alves Mendonça on 30/08/17.
+//  Copyright © 2017 Matheus Alves Mendonça. All rights reserved.
+//
 
 import UIKit
 
@@ -27,7 +34,7 @@ class StepsProgressView: UIProgressView {
         }
     }
     
-    open var steps: Int = 2 {
+    open var steps: [String] = [] {
         didSet {
             self.awakeFromNib()
         }
@@ -71,10 +78,26 @@ class StepsProgressView: UIProgressView {
         }
     }
     
+    open var stepLabelFont: UIFont = UIFont(name: "Arial", size: 10)! {
+        didSet {
+            self.awakeFromNib()
+        }
+    }
+    
+    open var stepLabelFontColor: UIColor = .black {
+        didSet {
+            self.awakeFromNib()
+        }
+    }
+    
     var stepsImageViews: [UIImageView] = []
+    var stepsLabels: [UILabel] = []
     var percentageView: UIView = UIView()
     var percentageLabel: UILabel = UILabel()
     var triangleView: TriangleView = TriangleView()
+    var untilWidthToCheck: CGFloat = 0
+    var actualPercentage: CGFloat = 0
+    var onePercentInPixels: CGFloat = 0
     
     override func awakeFromNib() {
         DispatchQueue.main.async {
@@ -83,29 +106,43 @@ class StepsProgressView: UIProgressView {
     }
     
     private func setProgress() {
-        self.progress = Float(self.percentage / CGFloat(100))
-        self.awakeFromNib()
+        self.setProgress(Float(self.percentage / CGFloat(100)), animated: true)
+        self.reloadAnimated()
     }
     
     private func addSteps() {
         
         self.stepsImageViews.removeAll()
+        self.stepsLabels.removeAll()
+        
+        self.removeViews()
+        
+        for text in self.steps {
+            let label: UILabel = UILabel()
+            label.text = text
+            label.textColor = self.stepLabelFontColor
+            label.font = self.stepLabelFont
+            self.stepsLabels.append(label)
+        }
         
         let barWidth = self.frame.size.width
-        let space = Int(barWidth) / (steps - 1)
-        let onePercentInPixels = barWidth / 100
-        let actualPercentage = self.progress * 100
-        let untilWidthToCheck = CGFloat(actualPercentage) * CGFloat(onePercentInPixels)
+        let space = Int(barWidth) / (steps.count - 1)
+        self.onePercentInPixels = barWidth / 100
+        self.actualPercentage = CGFloat(self.progress * 100)
+        
+        self.untilWidthToCheck = CGFloat(actualPercentage) * CGFloat(onePercentInPixels)
         
         var step = 1
-        while step <= steps {
+        while step <= steps.count {
             let imageView: UIImageView = UIImageView()
             imageView.backgroundColor = UIColor.white
-            if let last: UIImageView = stepsImageViews.last {
+            
+            if let last: UIImageView = self.stepsImageViews.last {
                 imageView.frame = CGRect(x: last.layer.frame.origin.x + CGFloat(space), y: self.bounds.origin.y - (self.progressViewImageHeight/2), width: self.progressViewImageWidth, height: self.progressViewImageHeight)
             } else {
                 imageView.frame = CGRect(x: self.bounds.origin.x - 10, y: self.bounds.origin.y - (self.progressViewImageHeight/2), width: self.progressViewImageWidth, height: self.progressViewImageHeight)
             }
+            
             if imageView.frame.origin.x <= untilWidthToCheck {
                 imageView.image = self.checkImage
                 if actualPercentage == 0 {
@@ -114,8 +151,16 @@ class StepsProgressView: UIProgressView {
             } else {
                 imageView.image = self.uncheckImage
             }
+            
             self.addSubview(imageView)
             stepsImageViews.append(imageView)
+            
+            let label: UILabel = self.stepsLabels[step - 1]
+            label.textAlignment = .center
+            label.frame = CGRect(x: imageView.frame.origin.x - 55, y: imageView.frame.origin.y + 20, width: 130, height: imageView.frame.size.height)
+            
+            self.addSubview(label)
+            
             step += 1
         }
         
@@ -142,7 +187,38 @@ class StepsProgressView: UIProgressView {
         self.addSubview(self.percentageView)
     }
     
-
+    func reloadAnimated() {
+        self.actualPercentage = CGFloat(self.progress * 100)
+        self.untilWidthToCheck = CGFloat(actualPercentage) * CGFloat(onePercentInPixels)
+        
+        UIView.animate(withDuration: 0.25, animations: {
+            for imageView in self.stepsImageViews {
+                if imageView.frame.origin.x <= self.untilWidthToCheck {
+                    imageView.image = self.checkImage
+                    if self.actualPercentage == 0 {
+                        imageView.image = self.uncheckImage
+                    }
+                } else {
+                    imageView.image = self.uncheckImage
+                }
+            }
+            self.percentageView.frame = CGRect(x: self.untilWidthToCheck - self.percentageViewWidth/2 - 20, y: self.bounds.origin.y - self.percentageViewBottomSpace, width: self.percentageViewWidth, height: self.percentageViewHeight)
+            self.triangleView.frame = CGRect(x: self.untilWidthToCheck - 4, y: self.bounds.origin.y - 20, width: 8, height: 5)
+            self.percentageLabel.text = "\(Int(self.progress * Float(100)))% Concluído"
+        })
+    }
+    
+    func removeViews() {
+        for view in self.stepsLabels {
+            view.removeFromSuperview()
+        }
+        
+        for view in self.stepsImageViews {
+            view.removeFromSuperview()
+        }
+    }
+    
+    
 }
 
 class TriangleView: UIView {
