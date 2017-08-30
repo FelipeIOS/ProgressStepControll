@@ -2,8 +2,8 @@ Pod::Spec.new do |s|
 
 # 1
 s.platform = :ios
-s.ios.deployment_target = '8.0'
-s.name = "RWPickFlavor"
+s.ios.deployment_target = ‘9.0’
+s.name = "ProgressStepControll"
 s.summary = "ProgressStepControll para controlar de forma dinamica os steps"
 s.requires_arc = true
 
