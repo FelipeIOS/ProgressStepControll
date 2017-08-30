@@ -20,5 +20,4 @@ s.framework = "UIKit"
 
 s.source_files = "ProgressStepControll/**/*.{swift}"
 
-s.resources = "ProgressStepControll/**/*.{png,jpeg,jpg,storyboard,xib}"
 end
